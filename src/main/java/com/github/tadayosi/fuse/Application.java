@@ -24,7 +24,7 @@ import org.springframework.context.annotation.ImportResource;
  * A spring-boot application that includes a Camel route builder to setup the Camel routes
  */
 @SpringBootApplication
-@ImportResource({"classpath:spring/camel-context.xml"})
+@ImportResource({ "classpath:spring/camel-context.xml" })
 public class Application extends RouteBuilder {
 
     // must have a main method spring-boot can run
@@ -34,8 +34,14 @@ public class Application extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
-        from("timer://foo?period=5000")
-            .setBody().constant("Hello World")
-            .log(">>> ${body}");
+        // @formatter:off
+        from("undertow:http://0.0.0.0:8080")
+            .log("received: name = ${header.name}")
+            .choice()
+                .when(header("name").isNotNull())
+                    .setBody(simple("Hello, ${header.name}!"))
+                .otherwise()
+                    .setBody(constant("Hello, World!"));
+        // @formatter:on
     }
 }
